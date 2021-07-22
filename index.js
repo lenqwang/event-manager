@@ -9,21 +9,30 @@ const base = new Base('demo');
 // Write Javascript code!
 const appDiv = document.getElementById('app');
 const html = `
-<h1>JS Starter</h1>
-<p>
-<button type="button" class="js-button">Click ME</button>
-<button type="button" class="js-button2">Click ME2</button>
-</p>
-<p>
-<button type="button" class="js-off-button">Off Click ME</button>
-<button type="button" class="js-off-button2">Off Click ME</button>
-</p>
-<p>
-<button type="button" class="js-hash-change">Change Hash</button>
-</p>
-<button type="button" class="js-off-all">Off All</button>
-<button type="button" class="js-off-resize">Off Window Resize</button>
-<button type="button" class="js-off-win">Off Window</button>
+<main>
+  <form>
+    <fieldset>
+      <legend><h1>Event Manager</h1></legend>
+      <blockquote>open devtools to show the events print logs</blockquote>
+      <p>
+        <button type="button" class="js-button">Click ME</button>
+        <button type="button" class="js-button2">Click ME2</button>
+      </p>
+      <p>
+        <button type="button" class="js-off-button">Off Click ME</button>
+        <button type="button" class="js-off-button2">Off Click ME</button>
+      </p>
+      <p>
+        <button type="button" class="js-hash-change">Change Hash</button>
+      </p>
+      <footer>
+        <button type="button" class="js-off-all">Off All</button>
+        <button type="button" class="js-off-resize">Off Window Resize</button>
+        <button type="button" class="js-off-win">Off Window</button>
+      </footer>
+    </fieldset>
+  </form>
+</main>
 `;
 
 const handlers = {
