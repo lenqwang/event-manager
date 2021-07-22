@@ -1,10 +1,12 @@
+/* eslint-disable no-param-reassign */
 import $ from 'jquery';
 
-function getEventHandlerName(event, selector) {
+// selector-event-namespace
+function getEventHandlerName(event, selector, namepsace) {
   if (!selector || typeof selector !== 'string') {
-    return event;
+    return [event, namepsace].join('-');
   }
-  return [selector, event].join('-');
+  return [selector, event, namepsace].join('-');
 }
 
 function isInvalid(param) {
@@ -24,9 +26,9 @@ function getNamespace(event, namespace) {
 }
 
 const eventInvalidErrorMessage =
-  'event must be provided and it must be a string';
+  'event param must be provided and it must be a string';
 
-export default class Base {
+export default class EventManager {
   constructor(namespace = '') {
     this.$win = $(window);
     this.$dom = $(document);
@@ -36,6 +38,10 @@ export default class Base {
 
   getEventNamespace(event) {
     return getNamespace(event, this.namespace);
+  }
+
+  getEventHandlerName(event, selector) {
+    return getEventHandlerName(event, selector, this.namespace);
   }
 
   $setNameSpace(namespace) {
@@ -53,9 +59,9 @@ export default class Base {
     }
 
     if (!handler) {
-      throw new Error('please provide handler');
+      throw new Error('please provide event handler!');
     } else {
-      const eventName = getEventHandlerName(event, selector);
+      const eventName = this.getEventHandlerName(event, selector);
       const ns = this.getEventNamespace(event);
       this.$eventHandlers.set(eventName, handler);
 
@@ -68,6 +74,7 @@ export default class Base {
   }
 
   $onWin(event, handler) {
+    this.$eventHandlers.set(this.getEventHandlerName(event), handler);
     this.$win.on(this.getEventNamespace(event), handler);
   }
 
@@ -75,7 +82,7 @@ export default class Base {
     if (isInvalid(event)) {
       throw new Error(eventInvalidErrorMessage);
     }
-    const eventHandlerName = getEventHandlerName(event, selector);
+    const eventHandlerName = this.getEventHandlerName(event, selector);
     const handler = this.$eventHandlers.get(eventHandlerName);
     const ns = this.getEventNamespace(event);
 
@@ -92,7 +99,14 @@ export default class Base {
   }
 
   $offWin(event) {
+    const eventHandlerName = this.getEventHandlerName(event);
+    const handler = this.$eventHandlers.get(eventHandlerName);
+
     this.$win.off(this.getEventNamespace(event));
+
+    if (handler) {
+      this.$eventHandlers.delete(eventHandlerName);
+    }
   }
 
   $offAll() {
