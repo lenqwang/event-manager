@@ -10,31 +10,74 @@ const base = new Base('demo');
 const appDiv = document.getElementById('app');
 const html = `
 <h1>JS Starter</h1>
+<p>
 <button type="button" class="js-button">Click ME</button>
-<button type="button" class="js-off-selector">Off Selector</button>
+<button type="button" class="js-button2">Click ME2</button>
+</p>
+<p>
+<button type="button" class="js-off-button">Off Click ME</button>
+<button type="button" class="js-off-button2">Off Click ME</button>
+</p>
+<p>
+<button type="button" class="js-hash-change">Change Hash</button>
+</p>
 <button type="button" class="js-off-all">Off All</button>
+<button type="button" class="js-off-resize">Off Window Resize</button>
+<button type="button" class="js-off-win">Off Window</button>
 `;
 
 const handlers = {
   bindEvent: () => {
     console.log('test');
   },
-  offSelector: () => {
+  bindEvent2: () => {
+    console.log('test2');
+  },
+  offButton: () => {
+    console.log('off button');
     base.$off('click', '.js-button');
+  },
+  offButton2: () => {
+    console.log('off button2');
+    base.$off('click', '.js-button2');
   },
   offAll: () => {
     console.log('off all');
     base.$offAll();
+  },
+  resizeWin: e => {
+    console.log(e.target.innerWidth, e.target.innerHeight);
+  },
+  haschangeWin: e => {
+    console.log('hashChanged: ', e.target.location.hash);
+    // console.log(e.target);
+  },
+  changeHash: () => {
+    chagneUrlHash(Date.now());
+  },
+  offResize: () => {
+    base.$offWin('resize');
+  },
+  offWin: () => {
+    base.$offWin();
   }
 };
 
 base.$on('click', '.js-button', handlers.bindEvent);
-base.$on('click', '.js-off-selector', handlers.offSelector);
+base.$on('click', '.js-button2', handlers.bindEvent2);
+base.$on('click', '.js-off-button', handlers.offButton);
+base.$on('click', '.js-off-button2', handlers.offButton2);
 base.$on('click', '.js-off-all', handlers.offAll);
+base.$on('click', '.js-off-win', handlers.offWin);
+base.$on('click', '.js-off-resize', handlers.offResize)
+base.$on('click', '.js-hash-change', handlers.changeHash);
+base.$onWin('resize', handlers.resizeWin);
+base.$onWin('hashchange', handlers.haschangeWin);
 
 $(appDiv).append(html);
-// .on('click.test', '.js-button', handlers.test)
-// .on('click.test2', '.js-button', handlers.test2)
-// .on('click', '.js-off', () => {
-//   $(appDiv).off('click', '.js-button');
-// });
+
+function chagneUrlHash(hash = '') {
+  const url = new URL(location.href);
+  url.hash = hash;
+  location.href = url.toString();
+}

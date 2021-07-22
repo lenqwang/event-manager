@@ -4,7 +4,23 @@ function getEventHandlerName(event, selector) {
   if (!selector || typeof selector !== 'string') {
     return event;
   }
-  return `${event}-${selector}`;
+  return [event, selector].join('-');
+}
+
+function isInvalid(param) {
+  return !param || typeof param !== 'string';
+}
+
+function getNamespace(event, namespace) {
+  if (isInvalid(event) && isInvalid(namespace)) {
+    throw new Error('one of these two parameters must be provided!');
+  }
+
+  if (isInvalid(event)) {
+    return `.${namespace}`;
+  }
+
+  return [event, namespace].join('.');
 }
 
 const eventInvalidErrorMessage =
@@ -18,12 +34,16 @@ export default class Base {
     this.$eventHandlers = new Map();
   }
 
+  getEventNamespace(event) {
+    return getNamespace(event, this.namespace);
+  }
+
   $setNameSpace(namespace) {
     this.namespace = namespace;
   }
 
   $on(event, selector, handler) {
-    if (!event || typeof event !== 'string') {
+    if (isInvalid(event)) {
       throw new Error(eventInvalidErrorMessage);
     }
 
@@ -36,42 +56,49 @@ export default class Base {
       throw new Error('please provide handler');
     } else {
       const eventName = getEventHandlerName(event, selector);
+      const ns = this.getEventNamespace(event);
       this.$eventHandlers.set(eventName, handler);
 
       if (selector) {
-        this.$dom.on(`${event}.${this.namespace}`, selector, handler);
+        this.$dom.on(ns, selector, handler);
       } else {
-        this.$dom.on(`${event}.${this.namespace}`, handler);
+        this.$dom.on(ns, handler);
       }
     }
   }
 
   $onWin(event, handler) {
-    this.$win.on(`${event}.${this.namespace}`, handler);
+    this.$win.on(this.getEventNamespace(event), handler);
   }
 
   $off(event, selector) {
-    if (!event || typeof event !== 'string') {
+    if (isInvalid(event)) {
       throw new Error(eventInvalidErrorMessage);
     }
     const eventHandlerName = getEventHandlerName(event, selector);
     const handler = this.$eventHandlers.get(eventHandlerName);
+    const ns = this.getEventNamespace(event);
 
     if (selector && typeof selector === 'string') {
       if (handler) {
-        this.$dom.off(`${event}.${this.namespace}`, selector, handler);
+        this.$dom.off(ns, selector, handler);
         this.$eventHandlers.delete(eventHandlerName);
       } else {
-        this.$dom.off(`${event}.${this.namespace}`, selector);
+        this.$dom.off(ns, selector);
       }
     } else {
-      this.$dom.off(`${event}.${this.namespace}`);
+      this.$dom.off(ns);
     }
   }
 
+  $offWin(event) {
+    this.$win.off(this.getEventNamespace(event));
+  }
+
   $offAll() {
-    this.$win.off(`.${this.namespace}`);
-    this.$dom.off(`.${this.namespace}`);
+    const ns = this.getEventNamespace();
+    this.$win.off(ns);
+    this.$dom.off(ns);
     this.$eventHandlers.clear();
   }
 }
