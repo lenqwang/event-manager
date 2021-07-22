@@ -4,7 +4,7 @@ function getEventHandlerName(event, selector) {
   if (!selector || typeof selector !== 'string') {
     return event;
   }
-  return [event, selector].join('-');
+  return [selector, event].join('-');
 }
 
 function isInvalid(param) {

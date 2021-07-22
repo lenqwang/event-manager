@@ -69,7 +69,7 @@ base.$on('click', '.js-off-button', handlers.offButton);
 base.$on('click', '.js-off-button2', handlers.offButton2);
 base.$on('click', '.js-off-all', handlers.offAll);
 base.$on('click', '.js-off-win', handlers.offWin);
-base.$on('click', '.js-off-resize', handlers.offResize)
+base.$on('click', '.js-off-resize', handlers.offResize);
 base.$on('click', '.js-hash-change', handlers.changeHash);
 base.$onWin('resize', handlers.resizeWin);
 base.$onWin('hashchange', handlers.haschangeWin);
