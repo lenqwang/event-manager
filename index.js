@@ -4,13 +4,12 @@ import $ from 'jquery';
 import Base from './base';
 
 window.jQuery = $;
-const base = new Base('demo');
 
 // Write Javascript code!
 const appDiv = document.getElementById('app');
 const html = `
 <main>
-  <form>
+  <form id="form">
     <fieldset>
       <legend><h1>Event Manager</h1></legend>
       <blockquote>open devtools to show the events print logs</blockquote>
@@ -35,6 +34,10 @@ const html = `
 </main>
 `;
 
+$(appDiv).append(html);
+
+const base = new Base('demo', '#form');
+// console.log(base.getPortals());
 const handlers = {
   bindEvent: () => {
     console.log('test');
@@ -82,8 +85,6 @@ base.$on('click', '.js-off-resize', handlers.offResize);
 base.$on('click', '.js-hash-change', handlers.changeHash);
 base.$onWin('resize', handlers.resizeWin);
 base.$onWin('hashchange', handlers.haschangeWin);
-
-$(appDiv).append(html);
 
 function chagneUrlHash(hash = '') {
   const url = new URL(location.href);

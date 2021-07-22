@@ -1,6 +1,5 @@
 /* eslint-disable no-param-reassign */
 import $ from 'jquery';
-
 // selector-event-namespace
 function getEventHandlerName(event, selector, namepsace) {
   if (!selector || typeof selector !== 'string') {
@@ -26,14 +25,16 @@ function getNamespace(event, namespace) {
 }
 
 const eventInvalidErrorMessage =
-  'event param must be provided and it must be a string';
+  'event param must be provided and it must be a string type';
 
 export default class EventManager {
-  constructor(namespace = '') {
+  constructor(namespace = '', portals) {
     this.$win = $(window);
-    this.$dom = $(document);
+    this.$doc = $(document);
+    this.$portals = portals ? $(portals) : null;
     this.namespace = typeof namespace === 'string' ? namespace : '';
     this.$eventHandlers = new Map();
+    this.$winEventHandlers = new Map();
   }
 
   getEventNamespace(event) {
@@ -44,11 +45,19 @@ export default class EventManager {
     return getEventHandlerName(event, selector, this.namespace);
   }
 
-  $setNameSpace(namespace) {
+  getPortals() {
+    return this.$portals instanceof $ && this.$portals.length > 0
+      ? this.$portals
+      : this.$doc;
+  }
+
+  $setNamespace(namespace) {
     this.namespace = namespace;
   }
 
   $on(event, selector, handler) {
+    const $dom = this.getPortals();
+
     if (isInvalid(event)) {
       throw new Error(eventInvalidErrorMessage);
     }
@@ -66,19 +75,20 @@ export default class EventManager {
       this.$eventHandlers.set(eventName, handler);
 
       if (selector) {
-        this.$dom.on(ns, selector, handler);
+        $dom.on(ns, selector, handler);
       } else {
-        this.$dom.on(ns, handler);
+        $dom.on(ns, handler);
       }
     }
   }
 
   $onWin(event, handler) {
-    this.$eventHandlers.set(this.getEventHandlerName(event), handler);
+    this.$winEventHandlers.set(this.getEventHandlerName(event), handler);
     this.$win.on(this.getEventNamespace(event), handler);
   }
 
   $off(event, selector) {
+    const $dom = this.getPortals();
     if (isInvalid(event)) {
       throw new Error(eventInvalidErrorMessage);
     }
@@ -88,31 +98,54 @@ export default class EventManager {
 
     if (selector && typeof selector === 'string') {
       if (handler) {
-        this.$dom.off(ns, selector, handler);
+        $dom.off(ns, selector, handler);
         this.$eventHandlers.delete(eventHandlerName);
       } else {
-        this.$dom.off(ns, selector);
+        $dom.off(ns, selector);
       }
     } else {
-      this.$dom.off(ns);
+      $dom.off(ns);
     }
   }
 
   $offWin(event) {
     const eventHandlerName = this.getEventHandlerName(event);
-    const handler = this.$eventHandlers.get(eventHandlerName);
+    const handler = this.$winEventHandlers.get(eventHandlerName);
 
     this.$win.off(this.getEventNamespace(event));
 
     if (handler) {
-      this.$eventHandlers.delete(eventHandlerName);
+      this.$winEventHandlers.delete(eventHandlerName);
     }
   }
 
   $offAll() {
     const ns = this.getEventNamespace();
     this.$win.off(ns);
-    this.$dom.off(ns);
+    this.$doc.off(ns);
+    if (this.$portals instanceof $ && this.$portals.length > 0) {
+      this.$portals.off(ns);
+    }
     this.$eventHandlers.clear();
+    this.$winEventHandlers.clear();
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepareTransition($el, callback, endCallback) {
+    function removeClass() {
+      $el.removeClass('is-transitioning');
+      $el.off('transitionend', removeClass);
+
+      if (endCallback) {
+        endCallback();
+      }
+    }
+    $el.on('transitionend', removeClass);
+    $el.addClass('is-transitioning');
+    $el.width();
+
+    if (typeof callback === 'function') {
+      callback();
+    }
   }
 }
