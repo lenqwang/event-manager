@@ -49,6 +49,9 @@ function on({ eventName, handler, selector, scope } = {}) {
   }
 
   if (selector) {
+    if (isInvalid(selector)) {
+      throw new TypeError('selector must be a string!');
+    }
     scope.on(eventName, selector, handler);
   } else {
     scope.on(eventName, handler);
@@ -65,6 +68,9 @@ function off({ eventName, selector, handler, scope } = {}) {
   }
 
   if (selector) {
+    if (isInvalid(selector)) {
+      throw new TypeError('selector must be a string!');
+    }
     if (typeof handler === 'function') {
       scope.off(eventName, selector, handler);
     } else {
