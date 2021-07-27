@@ -1,6 +1,15 @@
 /* eslint-disable no-param-reassign */
 import $ from 'jquery';
 
+// convenience for testing
+export const ERRORS = {
+  namespace_invalid: 'namespace must be provided!',
+  selector_invalid: 'selector must be a string!',
+  handler_is_function: 'handler must be a function',
+  scope_is_jquery_object: 'scope must be a jQuery Object',
+  eventName_invalid: 'event param must be provided and it must be a string type'
+}
+
 function isInvalid(param) {
   return !param || typeof param !== 'string';
 }
@@ -8,21 +17,27 @@ function isInvalid(param) {
 function isJqueryInstance(dom) {
   return dom && dom instanceof $ && dom.length > 0;
 }
+
+function filter(arr) {
+  if (!arr || !Array.isArray(arr)) return []
+  return arr.filter(Boolean)
+}
+
 // selector-event-namespace
 function getEventHandlerName(event, selector, namepsace) {
   if (!selector) {
-    return [event, namepsace].join('-');
+    return filter([event, namepsace]).join('-');
   }
   if (isJqueryInstance(selector)) {
     return selector;
   }
 
-  return [selector, event, namepsace].join('-');
+  return filter([selector, event, namepsace]).join('-');
 }
 
 function getNamespace(event, namespace) {
-  if (isInvalid(event) && isInvalid(namespace)) {
-    throw new Error('one of these two parameters must be provided!');
+  if (isInvalid(namespace)) {
+    throw new Error(ERRORS.namespace_invalid)
   }
 
   if (isInvalid(event)) {
@@ -32,8 +47,7 @@ function getNamespace(event, namespace) {
   return [event, namespace].join('.');
 }
 
-const eventInvalidErrorMessage =
-  'event param must be provided and it must be a string type';
+const eventInvalidErrorMessage = ERRORS.eventName_invalid
 
 function on({ eventName, handler, selector, scope } = {}) {
   if (isInvalid(eventName)) {
@@ -41,16 +55,16 @@ function on({ eventName, handler, selector, scope } = {}) {
   }
 
   if (!isJqueryInstance(scope)) {
-    throw new Error('scope must be a jQuery Object');
+    throw new Error(ERRORS.scope_is_jquery_object);
   }
 
   if (typeof handler !== 'function') {
-    throw new TypeError('handler must be a function');
+    throw new TypeError(ERRORS.handler_is_function);
   }
 
   if (selector) {
     if (isInvalid(selector)) {
-      throw new TypeError('selector must be a string!');
+      throw new TypeError(ERRORS.selector_invalid);
     }
     scope.on(eventName, selector, handler);
   } else {
@@ -64,12 +78,12 @@ function off({ eventName, selector, handler, scope } = {}) {
   }
 
   if (!isJqueryInstance(scope)) {
-    throw new Error('scope must be a jQuery Object');
+    throw new Error(ERRORS.scope_is_jquery_object);
   }
 
   if (selector) {
     if (isInvalid(selector)) {
-      throw new TypeError('selector must be a string!');
+      throw new TypeError(ERRORS.selector_invalid);
     }
     if (typeof handler === 'function') {
       scope.off(eventName, selector, handler);
@@ -160,8 +174,12 @@ export default class EventManager {
   }
 
   $onWin(event, handler) {
+    if (isInvalid(event)) {
+      throw new Error(ERRORS.eventName_invalid)
+    }
+    const ns = this.getEventNamespace(event)
+    on({ eventName: ns, selector: '', scope: this.$win, handler })
     this.$winEventHandlers.set(this.getEventHandlerName(event), handler);
-    this.$win.on(this.getEventNamespace(event), handler);
   }
 
   $off(event, selector) {
